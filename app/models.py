@@ -2,15 +2,51 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime, timezone
 from app.extensions import db
-
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model):
-    d = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
-    is_blacklisted = db.Column(db.Boolean, nullable=False, default=False)
-    # created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utc_now)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
+
+    #Relationships
+    Examiner_profile = db.relationship('Examiner', back_populates='user', uselist=False)
+    Student_profile = db.relationship('Student', back_populates='user', uselist=False)
     
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)   
+        
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+class Student(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    name = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+
+    user = db.relationship('User', back_populates='Student_profile')
+
+class Examiner(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    examination_id = db.Column(db.Integer,db.ForeignKey('examination.id'),nullable=False)
+    user_id = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
+    name = db.Column(db.String(255), nullable=True)
+    department = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.String(20), nullable=True)
+
+    created_at = db.Column(db.DateTime(timezone=True),nullable=False,default=datetime.now(timezone.utc))
+
+    user = db.relationship('User',back_populates='Examiner_profile')
+    examination = db.relationship('Examination', back_populates='examiners')
+
+class Examination(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    examination_name = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True),nullable=False,default=datetime.now(timezone.utc))
+
+    examiners = db.relationship('Examiner',back_populates='examination')
