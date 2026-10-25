@@ -6,3 +6,4 @@ from flask_sqlalchemy import SQLAlchemy
 # from here without importing the Flask app itself.
 db = SQLAlchemy()
 login_manager = LoginManager()
+login_manager.login_view = "auth.login"

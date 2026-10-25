@@ -4,13 +4,14 @@ from datetime import datetime, timezone
 from app.extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
-class User(db.Model):
+class User(db.Model,UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    is_blacklisted = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
 
     #Relationships
@@ -42,11 +43,22 @@ class Examiner(db.Model):
     created_at = db.Column(db.DateTime(timezone=True),nullable=False,default=datetime.now(timezone.utc))
 
     user = db.relationship('User',back_populates='Examiner_profile')
-    examination = db.relationship('Examination', back_populates='examiners')
+    examination = db.relationship('Examination', back_populates='examiner')
 
 class Examination(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     examination_name = db.Column(db.String(255), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True),nullable=False,default=datetime.now(timezone.utc))
 
-    examiners = db.relationship('Examiner',back_populates='examination')
+    examiner = db.relationship('Examiner',back_populates='examination')
+    course = db.relationship('Course', back_populates='examination')
+    
+class Course(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    course_name = db.Column(db.String(255), nullable=False)
+    course_code = db.Column(db.String(20), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True),nullable=False,default=datetime.now(timezone.utc))
+    
+    examination = db.relationship('Examination', back_populates='course')
