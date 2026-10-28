@@ -1,6 +1,6 @@
 from flask import Blueprint,flash, render_template, redirect, url_for, request
 from flask_login import current_user, login_user,logout_user, login_required,UserMixin
-from app.models import User, Student, Examiner, Examination, Course
+from app.models import User, Student, Examiner, Department
 from app.extensions import db
 auth = Blueprint('auth', __name__)
 
@@ -49,7 +49,7 @@ def login():
             if not examiner:
                 flash("Examiner profile is missing. Please contact support.", "danger")
                 return render_template("auth/login.html")
-            if examiner.approval_status != "approved":
+            if examiner.approval_status.lower() != "approved":
                 flash("Your examiner account is still awaiting admin approval.", "warning")
                 return render_template("auth/login.html")
             if examiner.is_suspended:
@@ -62,13 +62,70 @@ def login():
     
      return render_template("auth/login.html")   
 
-@auth.route('/register/student')
+@auth.route('/register/student', methods=['GET', 'POST'])
 def register_student():
-    return render_template('/auth/register_student.html')
+    """Create a student account and log the new student in immediately."""
+    if current_user.is_authenticated and request.method == "POST":
+        return redirect_for_role(current_user)
 
-@auth.route('/register/examiner')
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+
+        if not name or not email or not password:
+            flash("All fields are required.", "danger")
+            return render_template("auth/register_student.html")
+
+        if not is_valid_email(email):
+            flash("Please enter a valid email address.", "danger")
+            return render_template("auth/register_student.html")
+
+        if find_user_by_email(email):
+            flash("An account already exists with that email. You can login here.", "danger")
+            return render_template("auth/register_student.html")
+
+        user = User(name=name, email=email, role="student")
+        user.set_password(password)
+        student = Student(user=user, name=user.name)
+
+        db.session.add(student)
+        db.session.commit()
+
+        login_user(user)
+        flash("Student account created. Welcome in!", "success")
+        return redirect(url_for("student.dashboard"))
+
+    return render_template("/auth/register_student.html")
+
+@auth.route('/register/examiner', methods=['GET', 'POST'])
 def register_examiner():
-    return render_template('/auth/register_examiner.html')
+    if request.method == 'POST':
+        email = request.form.get('email', "").strip().lower()
+        password = request.form.get('password', "").strip()
+
+        name = request.form.get('username', "").strip()
+        department_id = request.form.get('department', "").strip()
+
+        user = User.query.filter_by(email=email).first()
+        if user:
+            flash("User already exists. Please log in.", "danger")
+            return redirect(url_for('auth.login'))
+
+        user = User(email=email, role='examiner', name=name)
+        user.set_password(password)
+
+        db.session.add(user)
+        db.session.commit()
+
+        examiner = Examiner(user_id=user.id, department_id=department_id)
+        db.session.add(examiner)
+        db.session.commit()
+
+        flash("Registration successful! Please wait for admin approval." , "info")
+        return redirect(url_for('main.index'))
+    departments = Department.query.all()
+    return render_template('auth/register_examiner.html', departments=departments)
 
 @auth.route("/logout", methods=["POST"])
 @login_required

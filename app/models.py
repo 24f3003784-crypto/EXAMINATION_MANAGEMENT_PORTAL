@@ -10,13 +10,14 @@ class User(db.Model,UserMixin):
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False)
+    
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     is_blacklisted = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
 
     #Relationships
-    Examiner_profile = db.relationship('Examiner', back_populates='user', uselist=False)
-    Student_profile = db.relationship('Student', back_populates='user', uselist=False)
+    examiner_profile = db.relationship('Examiner', back_populates='user', uselist=False)
+    student_profile = db.relationship('Student', back_populates='user', uselist=False)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)   
@@ -30,35 +31,31 @@ class Student(db.Model):
     name = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
 
-    user = db.relationship('User', back_populates='Student_profile')
+    user = db.relationship('User', back_populates='student_profile')
 
 class Examiner(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    examination_id = db.Column(db.Integer,db.ForeignKey('examination.id'),nullable=False)
-    user_id = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
-    name = db.Column(db.String(255), nullable=True)
-    department = db.Column(db.String(255), nullable=True)
-    status = db.Column(db.String(20), nullable=True)
-
-    created_at = db.Column(db.DateTime(timezone=True),nullable=False,default=datetime.now(timezone.utc))
-
-    user = db.relationship('User',back_populates='Examiner_profile')
-    examination = db.relationship('Examination', back_populates='examiner')
-
-class Examination(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    examination_name = db.Column(db.String(255), nullable=False)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    created_at = db.Column(db.DateTime(timezone=True),nullable=False,default=datetime.now(timezone.utc))
-
-    examiner = db.relationship('Examiner',back_populates='examination')
-    course = db.relationship('Course', back_populates='examination')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True) 
+    department_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=True) 
+    contact_info = db.Column(db.String(255), nullable=True) 
+    approval_status = db.Column(db.String(20), nullable=False, default='Pending') # 'Pending', 'Approved', 'Rejected'
+    is_suspended = db.Column(db.Boolean, nullable=False, default=False) 
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    
+    user = db.relationship('User',back_populates='examiner_profile')
+    department = db.relationship('Department', back_populates='examiner')
     
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     course_name = db.Column(db.String(255), nullable=False)
     course_code = db.Column(db.String(20), nullable=False)
-    description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime(timezone=True),nullable=False,default=datetime.now(timezone.utc))
     
-    examination = db.relationship('Examination', back_populates='course')
+
+class Department(db.Model):
+    id = db.Column(db.Integer, primary_key=True,nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    department_code = db.Column(db.String(20), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True),nullable=False,default=datetime.now(timezone.utc))
+    
+    examiner = db.relationship('Examiner', back_populates='department')

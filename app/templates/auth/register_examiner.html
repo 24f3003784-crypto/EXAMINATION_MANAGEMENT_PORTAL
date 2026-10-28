@@ -5,7 +5,7 @@ content%}
     <div class="col-md-6">
       <h2 class="text-center mb-4">Register as Examiner</h2>
 
-      <form>
+      <form action="{{ url_for('auth.register_examiner') }}" method="POST">
         <div class="mb-3">
           <label for="email" class="form-label">Email</label>
           <input
@@ -27,14 +27,13 @@ content%}
             required
           />
         </div>
-
         <div class="mb-3">
-          <label for="service_id" class="form-label">Course ID</label>
-          <select class="form-select" aria-label="Default select example">
-            <option disabled selected>Select Course</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
+          <label for="department" class="form-label">Department</label>
+          <select class="form-select" id="department" name="department" required>
+            <option disabled selected>Select Department</option>
+            {% for department in departments %}
+            <option value="{{ department.id }}">{{ department.name }}</option>
+            {% endfor %}
           </select>
         </div>
 

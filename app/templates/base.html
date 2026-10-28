@@ -25,9 +25,8 @@
           {% if current_user.role == "admin" %}
           <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
           <a class="nav-link" href="#">Courses</a>
-          <a class="nav-link" href="#">Examiners</a>
+          <a class="nav-link" href="{{ url_for('admin.examiners') }}">Examiners</a>
           <a class="nav-link" href="#">Students</a>
-          <a class="nav-link" href="#">Requests</a>
           {% elif current_user.role == "student" %}
           <a class="nav-link" href="{{ url_for('student.dashboard') }}">Dashboard</a>
           <a class="nav-link" href="#">Browse</a>
@@ -47,9 +46,9 @@
           </form>
           {% else %}
           <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
-          <a class="nav-link" href="{{ url_for('auth.register_student') }}">Student Register</a>
+          <a class="nav-link" href="{{ url_for('auth.register_student') }}">Student Registration</a>
           <a class="nav-link" href="{{ url_for('auth.register_examiner') }}">
-            Examiner Register
+            Examiner Registration
           </a>
           {% endif %}
         </div>

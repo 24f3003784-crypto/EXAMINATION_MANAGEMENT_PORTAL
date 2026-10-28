@@ -7,7 +7,7 @@
     <div class="col-md-6">
       <h2 class="text-center mb-4">Register as Student</h2>
 
-      <form>
+      <form  method="POST" action="{{ url_for('auth.register_student') }}">
         <div class="mb-3">
           <label for="email" class="form-label">Email</label>
           <input
@@ -20,25 +20,14 @@
         </div>
 
         <div class="mb-3">
-          <label for="username" class="form-label">Username</label>
+          <label for="name" class="form-label">Name</label>
           <input
             type="text"
             class="form-control"
-            id="username"
-            name="username"
+            id="name"
+            name="name"
             required
           />
-        </div>
-
-        <div class="mb-3">
-          <label for="address" class="form-label">Address</label>
-          <textarea
-            class="form-control"
-            id="address"
-            name="address"
-            rows="3"
-            required
-          ></textarea>
         </div>
 
         <div class="mb-3">

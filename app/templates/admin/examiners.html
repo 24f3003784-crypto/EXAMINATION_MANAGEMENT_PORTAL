@@ -1,0 +1,37 @@
+{% extends "base.html" %} {% block title %}Admin Dashboard{% endblock %} {%
+block content %}
+<h1>Examiners</h1>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Username</th>
+      <th scope="col">Email</th>
+      <th scope="col">Department</th>
+      <th scope="col">Approval Status</th>
+      <th scope="col">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for examiner in examiners %}
+    <tr>
+      <th scope="row">{{ loop.index }}</th>
+      <td>{{ examiner.user.name }}</td>
+      <td>{{ examiner.user.email }}</td>
+      <td>{{ examiner.department.name }}</td>
+      <td>{{ examiner.approval_status }}</td>
+      <td>
+        {% if examiner.approval_status|lower == "Pending" %}
+          <form method="POST" action="{{ url_for('admin.approve_examiner', examiner_id=examiner.id) }}" class="d-inline">
+            <button class="btn btn-success btn-sm" type="submit">Approve</button>
+          </form>
+          <form method="POST" action="{{ url_for('admin.reject_examiner', examiner_id=examiner.id) }}" class="d-inline">
+            <button class="btn btn-outline-danger btn-sm" type="submit">Reject</button>
+          </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
