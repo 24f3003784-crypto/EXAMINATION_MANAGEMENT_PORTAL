@@ -1,4 +1,4 @@
-from flask import Blueprint,render_template, redirect, url_for
+from flask import Blueprint,render_template, redirect, url_for,flash 
 from flask_login import current_user, login_required
 
 from app.extensions import db
@@ -15,21 +15,39 @@ def dashboard():
 @admin_bp.route('/examiners')
 @login_required
 def examiners():
-    examiners = Examiner.query.all()
-    return render_template('admin/examiners.html', examiners=examiners)
+    pending_examiners = Examiner.query.filter_by(approval_status='Pending').all()
+    approved_examiners = Examiner.query.filter_by(approval_status='Approved').all()
+    return render_template('/admin/examiners.html', pending_examiners=pending_examiners, approved_examiners=approved_examiners)
 
 @admin_bp.route('/approve_examiner/<int:examiner_id>', methods=['POST'])
 @login_required
 def approve_examiner(examiner_id):
-    examiner = Examiner.query.get_or_404(examiner_id)
-    examiner.approval_status = 'Approved'
-    db.session.commit()
+    examiner = Examiner.query.get(examiner_id)
+    if examiner:
+        examiner.approval_status = 'Approved'
+        db.session.commit()
+        flash(f"Examiner {examiner.user.name} has been approved.", "success")
+    else:
+        flash("Examiner not found.", "danger")
     return redirect(url_for('admin.examiners'))
 
 @admin_bp.route('/reject_examiner/<int:examiner_id>', methods=['POST'])
 @login_required 
 def reject_examiner(examiner_id):
-    examiner = Examiner.query.get_or_404(examiner_id)
-    examiner.approval_status = 'Rejected'
+    examiner = Examiner.query.get(examiner_id)
+    if examiner:
+        examiner.approval_status = 'Rejected'
+        db.session.commit()
+        flash(f"Examiner {examiner.user.name} has been rejected.", "success")
+    else:
+        flash("Examiner not found.", "danger")
+    return redirect(url_for('admin.examiners'))
+
+@admin_bp.route('/blacklist/<int:examiner_id>', methods=['POST'])
+@login_required
+def toggle_blacklist_examiner(examiner_id):
+    examiner = Examiner.query.get(examiner_id)
+    examiner.user.is_blacklisted = not examiner.user.is_blacklisted
     db.session.commit()
+    flash('Status updated', "success")
     return redirect(url_for('admin.examiners'))

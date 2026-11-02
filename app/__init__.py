@@ -47,11 +47,13 @@ def create_app(class_name=Config):
     from app.routes.admin import admin_bp
     from app.routes.main import main_bp
     from app.routes.student import student_bp
+    from app.routes.examiner import examiner_bp
     
     app.register_blueprint(auth)
     app.register_blueprint(admin_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(student_bp)
+    app.register_blueprint(examiner_bp)
 
     return app
 

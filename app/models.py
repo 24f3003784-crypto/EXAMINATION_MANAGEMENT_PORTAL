@@ -43,7 +43,7 @@ class Examiner(db.Model):
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     
     user = db.relationship('User',back_populates='examiner_profile')
-    department = db.relationship('Department', back_populates='examiner')
+    department = db.relationship('Department', back_populates='examiners')
     
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -58,4 +58,4 @@ class Department(db.Model):
     department_code = db.Column(db.String(20), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True),nullable=False,default=datetime.now(timezone.utc))
     
-    examiner = db.relationship('Examiner', back_populates='department')
+    examiners = db.relationship('Examiner', back_populates='department')

@@ -40,12 +40,12 @@ def login():
             flash("Invalid email or password.", "danger")
             return render_template("auth/login.html")
 
-        if not user.is_active or user.is_blacklisted:
+        if  user.is_blacklisted or not user.is_active:
             flash("This account is not allowed to log in. Please contact support.", "danger")
             return render_template("auth/login.html")
 
         if user.role == "examiner":
-            examiner = user.Examiner_profile
+            examiner = user.examiner_profile
             if not examiner:
                 flash("Examiner profile is missing. Please contact support.", "danger")
                 return render_template("auth/login.html")
