@@ -19,6 +19,12 @@ def examiners():
     approved_examiners = Examiner.query.filter_by(approval_status='Approved').all()
     return render_template('/admin/examiners.html', pending_examiners=pending_examiners, approved_examiners=approved_examiners)
 
+@admin_bp.route('/students')
+@login_required 
+def students():
+    students = Student.query.all()
+    return render_template('/admin/students.html', students=students)
+
 @admin_bp.route('/approve_examiner/<int:examiner_id>', methods=['POST'])
 @login_required
 def approve_examiner(examiner_id):

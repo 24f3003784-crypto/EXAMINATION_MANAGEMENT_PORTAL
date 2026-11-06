@@ -26,12 +26,28 @@
           <a class="nav-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
           <a class="nav-link" href="#">Courses</a>
           <a class="nav-link" href="{{ url_for('admin.examiners') }}">Examiners</a>
-          <a class="nav-link" href="#">Students</a>
+          <a class="nav-link" href="{{ url_for('admin.students') }}">Students</a>
+          <a class="nav-link" href="#">Examinations</a>
           {% elif current_user.role == "student" %}
+          <div>
+                <form class="d-flex" role="search">
+                      <input
+                          class="form-control me-2"
+                          type="search"
+                          name="search"
+                          placeholder="Search Exams"
+                          aria-label="Search"
+                      >
+                      <button class="btn btn-primary" type="submit">
+                          Search
+                      </button>
+                </form>
+          </div>
           <a class="nav-link" href="{{ url_for('student.dashboard') }}">Dashboard</a>
-          <a class="nav-link" href="#">Browse</a>
-          <a class="nav-link" href="#">My Exams</a>
-          <a class="nav-link" href="#">History</a>
+          <a class="nav-link" href="{{ url_for('student.my_exams') }}">My Examinations</a>
+          <a class="nav-link" href="{{ url_for('student.bookings') }}">My bookings</a>
+          <a class="nav-link" href="{{ url_for('student.results') }}">Results</a>
+          <a class="nav-link" href="{{ url_for('student.profile') }}">Profile</a>
           {% elif current_user.role == "examiner" %}
           <a class="nav-link" href="{{ url_for('examiner.dashboard') }}">Dashboard</a>
           <a class="nav-link" href="#">My Courses</a>

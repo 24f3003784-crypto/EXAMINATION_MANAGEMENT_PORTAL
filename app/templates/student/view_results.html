@@ -1,0 +1,169 @@
+
+{% extends "base.html" %}
+
+{% block title %}Examination History{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">Examination History</h3>
+
+            <p class="text-muted mb-0">
+                View your previously completed examinations and results.
+            </p>
+        </div>
+
+        <a href="{{ url_for('student.dashboard') }}"
+           class="btn btn-outline-primary">
+            Back to Dashboard
+        </a>
+
+    </div>
+
+    <!-- Summary Card -->
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body">
+
+                    <p class="text-muted mb-1">
+                        Completed Examinations
+                    </p>
+
+                    <h3 class="fw-bold text-primary mb-0">
+                        {{ bookings|length }}
+                    </h3>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- History Table -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white py-3">
+
+            <h5 class="fw-bold mb-0">
+                Examination Records
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Examination</th>
+                            <th>Course</th>
+                            <th>Examination Type</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Result</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for booking in bookings %}
+
+                        <tr>
+
+                            <td>#{{ booking.id }}</td>
+
+                            <td>
+                                <span class="fw-semibold">
+                                    {{ booking.slot.examination.examination_name }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {{ booking.slot.examination.course.course_code }}
+                            </td>
+
+                            <td>
+                                {{ booking.slot.examination.examination_type }}
+                            </td>
+
+                            <td>
+                                {{ booking.slot.slot_date.strftime('%d-%m-%Y') }}
+                            </td>
+
+                            <td>
+                                <span class="badge bg-primary">
+                                    Completed
+                                </span>
+                            </td>
+
+                            <td>
+
+                                {% if booking.evaluations|selectattr('is_published', 'equalto', true)|list|length > 0 %}
+
+                                    <a href="{{ url_for('student.view_results', booking_id=booking.id) }}"
+                                       class="btn btn-sm btn-outline-success">
+                                        View Result
+                                    </a>
+
+                                {% else %}
+
+                                    <span class="badge bg-warning text-dark">
+                                        Result Pending
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+
+                            <td colspan="7" class="text-center py-5">
+
+                                <h5 class="text-muted">
+                                    No examination history available
+                                </h5>
+
+                                <p class="text-muted mb-0">
+                                    Your completed examinations will appear here.
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

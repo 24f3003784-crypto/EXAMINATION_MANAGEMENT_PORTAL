@@ -1,0 +1,363 @@
+
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <!-- ================= DASHBOARD HEADER ================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">Student Dashboard</h3>
+            <p class="text-muted mb-0">
+                Welcome, {{ student.user.name }}
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- ================= AVAILABLE EXAMINATION SLOTS ================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-semibold">Available Slots</h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover table-bordered align-middle text-center mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>Slot ID</th>
+                            <th>Examination Name</th>
+                            <th>Date</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Max Capacity</th>
+                            <th>Available Seats</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for slot in available_slots %}
+
+                        <tr>
+
+                            <td>{{ slot.id }}</td>
+
+                            <td>
+                                {{ slot.examination.examination_name }}
+                            </td>
+
+                            <td>
+                                {{ slot.slot_date.strftime('%d-%m-%Y') }}
+                            </td>
+
+                            <td>
+                                {{ slot.start_time.strftime('%I:%M %p') }}
+                            </td>
+
+                            <td>
+                                {{ slot.end_time.strftime('%I:%M %p') }}
+                            </td>
+
+                            <td>{{ slot.max_capacity }}</td>
+
+                            <td>{{ slot.available_seats }}</td>
+
+                            <td>
+
+                                {% if slot.id in booked_slot_ids %}
+
+                                    <button class="btn btn-danger btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#cancelModal{{ slot.id }}">
+                                        Cancel
+                                    </button>
+
+                                {% else %}
+
+                                    <button class="btn btn-primary btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#bookModal{{ slot.id }}"
+                                            {% if slot.available_seats <= 0 %}disabled{% endif %}>
+                                        Book
+                                    </button>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="8" class="text-muted py-4">
+                                No examination slots available.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= UPCOMING EXAMINATIONS ================= -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-semibold">Upcoming Exams</h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover table-bordered align-middle text-center mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Course Code</th>
+                            <th>Examination ID</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Duration</th>
+                            <th>Max Marks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for booking in upcoming_bookings %}
+
+                        <tr>
+
+                            <td>{{ booking.id }}</td>
+
+                            <td>
+                                {{ booking.slot.examination.course.course_code }}
+                            </td>
+
+                            <td>
+                                {{ booking.slot.examination.id }}
+                            </td>
+
+                            <td>
+                                {{ booking.slot.slot_date.strftime('%d-%m-%Y') }}
+                            </td>
+
+                            <td>
+                                {{ booking.slot.examination.examination_type }}
+                            </td>
+
+                            <td>
+                                {{ booking.slot.examination.duration_minutes }} mins
+                            </td>
+
+                            <td>
+                                {{ booking.slot.examination.max_marks }}
+                            </td>
+
+                            <td>
+
+                                <a href="{{ url_for('student.view_exam', booking_id=booking.id) }}"
+                                   class="btn btn-outline-primary btn-sm">
+                                    View
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="8" class="text-muted py-4">
+                                No upcoming examinations.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= BOOKING / CANCELLATION MODALS ================= -->
+
+{% for slot in available_slots %}
+
+    {% if slot.id not in booked_slot_ids %}
+
+        <!-- BOOKING CONFIRMATION MODAL -->
+
+        <div class="modal fade"
+             id="bookModal{{ slot.id }}"
+             tabindex="-1"
+             aria-labelledby="bookModalLabel{{ slot.id }}"
+             aria-hidden="true">
+
+            <div class="modal-dialog modal-dialog-centered">
+
+                <div class="modal-content">
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title"
+                            id="bookModalLabel{{ slot.id }}">
+                            Confirm Booking
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal">
+                        </button>
+
+                    </div>
+
+                    <div class="modal-body">
+
+                        Are you sure you want to book this examination slot?
+
+                        <hr>
+
+                        <p><strong>Examination:</strong>
+                            {{ slot.examination.examination_name }}
+                        </p>
+
+                        <p><strong>Date:</strong>
+                            {{ slot.slot_date.strftime('%d-%m-%Y') }}
+                        </p>
+
+                        <p><strong>Time:</strong>
+                            {{ slot.start_time.strftime('%I:%M %p') }}
+                        </p>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                            No
+                        </button>
+
+                        <form method="POST"
+                              action="{{ url_for('student.book_slot', slot_id=slot.id) }}">
+
+                            <button type="submit" class="btn btn-primary">
+                                Confirm Booking
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% else %}
+
+        <!-- CANCELLATION CONFIRMATION MODAL -->
+
+        <div class="modal fade"
+             id="cancelModal{{ slot.id }}"
+             tabindex="-1"
+             aria-labelledby="cancelModalLabel{{ slot.id }}"
+             aria-hidden="true">
+
+            <div class="modal-dialog modal-dialog-centered">
+
+                <div class="modal-content">
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title"
+                            id="cancelModalLabel{{ slot.id }}">
+                            Confirm Cancellation
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal">
+                        </button>
+
+                    </div>
+
+                    <div class="modal-body">
+
+                        Are you sure you want to cancel your examination booking?
+
+                        <p class="mt-3 mb-0">
+                            <strong>Examination:</strong>
+                            {{ slot.examination.examination_name }}
+                        </p>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                            No
+                        </button>
+
+                        <form method="POST"
+                              action="{{ url_for('student.cancel_slot', slot_id=slot.id) }}">
+
+                            <button type="submit" class="btn btn-danger">
+                                Confirm Cancel
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+{% endfor %}
+
+{% endblock %}
